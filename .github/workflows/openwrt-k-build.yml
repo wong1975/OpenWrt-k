@@ -57,9 +57,14 @@ jobs:
         #with:
         #  limit-access-to-actor: true # 强烈建议开启，仅允许你本人访问，防止泄露
 
+      - name: List workspace tree for debug
+        run: |
+          pwd
+          ls -lR
+
       - name: Archive x86_64 directory and move to workspace root
         run: |
-          src_dir="runner/work/openwrt-k/openwrt-k/config/x86_64"
+          src_dir="$GITHUB_WORKSPACE/config/x86_64"
           if [ -d "$src_dir" ]; then
             tar -czvf x86_64.tar.gz -C "$src_dir" .
             mv x86_64.tar.gz $GITHUB_WORKSPACE
