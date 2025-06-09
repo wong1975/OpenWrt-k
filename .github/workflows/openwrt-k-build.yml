@@ -66,8 +66,8 @@ jobs:
         run: |
           src_dir="$GITHUB_WORKSPACE/OpenWrt-K_config_build_dir/OpenWrt-K/config/ax3600"
           if [ -d "$src_dir" ]; then
-            tar -czvf x86_64.tar.gz -C "$src_dir" .
-            echo "x86_64 directory archived in workspace root."
+            tar -czvf ax3600.tar.gz -C "$src_dir" .
+            echo "ax3600 directory archived in workspace root."
           else
             echo "Directory $src_dir does not exist, nothing to archive."
           fi
