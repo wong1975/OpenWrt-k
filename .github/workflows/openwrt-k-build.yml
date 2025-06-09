@@ -62,13 +62,12 @@ jobs:
           pwd
           ls -lR
 
-      - name: Archive x86_64 directory and move to workspace root
+      - name: Archive x86_64 directory to workspace root
         run: |
-          src_dir="$GITHUB_WORKSPACE/config/x86_64"
+          src_dir="$GITHUB_WORKSPACE/OpenWrt-K_config_build_dir/OpenWrt-K/config/x86_64"
           if [ -d "$src_dir" ]; then
             tar -czvf x86_64.tar.gz -C "$src_dir" .
-            mv x86_64.tar.gz $GITHUB_WORKSPACE
-            echo "x86_64 directory archived and moved to workspace root."
+            echo "x86_64 directory archived in workspace root."
           else
             echo "Directory $src_dir does not exist, nothing to archive."
           fi
@@ -79,6 +78,6 @@ jobs:
           name: openwrt-firmware-${{ github.run_id }}-${{ github.sha }}
           path: |
             #openwrt/bin/targets/
-            #openwrt/bin/packages/
+            # openwrt/bin/packages/
             ./x86_64.tar.gz
           retention-days: 90
