@@ -64,7 +64,7 @@ jobs:
 
       - name: Archive x86_64 directory to workspace root
         run: |
-          src_dir="$GITHUB_WORKSPACE/OpenWrt-K_config_build_dir/OpenWrt-K/config/x86_64"
+          src_dir="$GITHUB_WORKSPACE/OpenWrt-K_config_build_dir/OpenWrt-K/config/ax3600"
           if [ -d "$src_dir" ]; then
             tar -czvf x86_64.tar.gz -C "$src_dir" .
             echo "x86_64 directory archived in workspace root."
@@ -79,5 +79,5 @@ jobs:
           path: |
             #openwrt/bin/targets/
             # openwrt/bin/packages/
-            ./x86_64.tar.gz
+            ./ax3600.tar.gz
           retention-days: 90
