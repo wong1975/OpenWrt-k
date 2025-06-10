@@ -43,7 +43,7 @@ jobs:
         working-directory: /opt/OpenWrt-K
         run: python3 -m build_helper --task prepare
 
-      - name: 上传
+      - name: 上传生成源代码
         uses: ./../../../../../opt/OpenWrt-K/.github/action/upload
 
   base-builds:
