@@ -89,7 +89,7 @@ jobs:
         env:
           CACHE_HIT: ${{ steps.cache-toolchain.outputs.cache-hit }}
 
-      - name: 上传
+      - name: 上传工具链与内核(${{ matrix.name }})
         if: success() || failure()
         uses: ./../../../../../opt/OpenWrt-K/.github/action/upload
 
@@ -119,12 +119,12 @@ jobs:
           restore-keys: |
             ${{ steps.prepare.outputs.cache-restore-key }}
 
-      - name: 编译
+      - name: 编译软件包(${{ matrix.name }})
         id: build
         working-directory: /opt/OpenWrt-K
         run: python3 -m build_helper --task build_packages --config ${{ matrix.config }}
 
-      - name: 上传
+      - name: 上传软件包(${{ matrix.name }})
         if: success() || failure()
         uses: ./../../../../../opt/OpenWrt-K/.github/action/upload
 
@@ -154,12 +154,12 @@ jobs:
           restore-keys: |
             ${{ steps.prepare.outputs.cache-restore-key }}
 
-      - name: 编译
+      - name: 编译(${{ matrix.name }})固件
         id: build
         working-directory: /opt/OpenWrt-K
         run: python3 -m build_helper --task build_image_builder --config ${{ matrix.config }}
 
-      - name: 上传
+      - name: 上传(${{ matrix.name }})固件
         if: success() || failure()
         uses: ./../../../../../opt/OpenWrt-K/.github/action/upload
 
@@ -185,6 +185,6 @@ jobs:
         working-directory: /opt/OpenWrt-K
         run: python3 -m build_helper --task build_images_releases --config ${{ matrix.config }}
 
-      - name: 上传
+      - name: 上传(${{ matrix.name }}))固件
         if: success() || failure()
         uses: ./../../../../../opt/OpenWrt-K/.github/action/upload
