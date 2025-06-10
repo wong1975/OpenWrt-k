@@ -4,19 +4,19 @@
 name: Build OpenWrt-K
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 4 * * *'
-  push:
-    paths:
-      - '.github/**'
-      - 'files/**'
-      - 'build_helper/**'
-      - 'config/**'
+  #schedule:
+  #  - cron: '0 4 * * *'
+  #push:
+  #  paths:
+  #    - '.github/**'
+  #    - 'files/**'
+  #    - 'build_helper/**'
+  #    - 'config/**'
 
-      - '!.gitignore'
-      - '!LICENSE'
-      - '!README.md'
-      - '!img/**'
+  #    - '!.gitignore'
+  #    - '!LICENSE'
+  #    - '!README.md'
+  #    - '!img/**'
 
 permissions:
   actions: write
