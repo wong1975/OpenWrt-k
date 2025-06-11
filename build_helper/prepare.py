@@ -28,12 +28,26 @@ def parse_configs() -> dict[str, dict[str, Any]]:
     """解析配置文件"""
     configs: dict[str, dict] = {}
     for name, path in paths.configs.items():
+        # 自动 fallback 逻辑
+        real_path = path
+        # 如果目录不存在，自动降级
+        if not os.path.exists(real_path):
+            # 1. 针对 -stock profile 自动降级到 xiaomi_ax3600
+            if ("ax3600-stock" in name or "ax3600-stock" in path) and os.path.exists(os.path.join(os.path.dirname(path), "xiaomi_ax3600")):
+                from .utils.logger import logger
+                logger.warning("配置 %s 不存在，自动使用 xiaomi_ax3600 配置", name)
+                real_path = os.path.join(os.path.dirname(path), "xiaomi_ax3600")
+            # 2. 其它 fallback 可以自己扩展，比如自动降级到非 -stock、去掉前缀等
+            else:
+                raise FileNotFoundError(f"配置 {name} 的目录 {real_path} 不存在")
+
         logger.info("解析配置: %s", name)
-        configs[name] = {"path": path, "name": name}
-        k_config_path = os.path.join(path, "OpenWrt-K")
+        configs[name] = {"path": real_path, "name": name}
+        k_config_path = os.path.join(real_path, "OpenWrt-K")
         if not os.path.isdir(k_config_path):
             msg = f"未找到配置{name}的openwrt文件夹: {k_config_path}"
             raise NotADirectoryError(msg)
+
 
         configs[name]["compile"] = parse_config(os.path.join(k_config_path, "compile.config"),
                                                 ("openwrt_tag/branch", "kmod_compile_exclude_list", "use_cache"))
