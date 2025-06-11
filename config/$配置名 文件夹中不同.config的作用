@@ -1,0 +1,22 @@
+关于此仓库的配置
+本仓库的 config/$配置名 文件夹中的*.config文件为配置差异文件制作而来，它好处是这些文件可以在下游项目中进行版本控制。它也较少受到上游更新的影响，因为它只包含更改（见openwrt官网使用配置文件差异文件进行配置）， 编译时 config/$配置名 文件夹中的*.config文件回被合并拓展为完整的config文件（拓展过程中会添加默认软件包与配置，也会添加软件包依赖）
+
+config 文件夹中不同.config的作用
+
+default-extpackages.config --- 供OpenWrt-k配置构建工具下载默认拓展软件包配置使用
+OpenWrt.config             --- 目前仅用于定义工作流要编译的配置
+config/$配置名 文件夹中不同.config的作用
+
+image.config      --- 存储镜像的分区大小生成镜像的类型系统启动等待时间等配置（对应Menuconfig中的Target Images）
+target.config     --- 存储编译固件的架构设备等（对应Menuconfig中的Target System、Subtarget、Target Profile、Target Devices）
+kmod.config       --- 存储内核模块（驱动）配置（对应Menuconfig中的Kernel modules）
+luci.config       --- 存储LuCI APP配置（对应Menuconfig中的LuCI）
+network.config    --- 存储网络相关软件包配置（对应Menuconfig中的Network）
+utilities.config  --- 存储工具类软件包配置（对应Menuconfig中的Utilities）
+other.config      --- openwrt剩余的所有配置
+OpenWrt-K/extpackages.config --- 存放拓展软件包配置
+OpenWrt-K/openwrtext.config --- 存放openwrt拓展配置，如：IP、时区等
+OpenWrt-K/compile.config --- 用于定义openwrt编译所用的分支或tag（仅官方源）与配置kmod编译排除列表
+关于kmod编译排除列表: 此列表仅会在添加所有kmod为模块(=m)时进行排除,如果你配置某kmod为模块/编译进固件(=m/y)或被其他软件包(包括没被排除的kmod)依赖则会警告或报错(不会停止工作流)。所以此列表仅应该添加kmod，例如dahdi-linux编译报错你应该将依赖它的软件包kmod-dahdi添加进kmod编译排除列表而不是添加不属于kmod的dahdi-linux。
+
+注：内核模块(kmod)编译排除列表在仓库根目录的config/$配置名/OpenWrt-K/compile.config中，不同内核模块(kmod)名之间用,(英文逗号)分隔，支持通字符.*。
