@@ -129,26 +129,41 @@ fi
 
 # 输入参数函数
 function input_parameters() {
-    # 调用detect_github_api_rate_limit函数以检查GitHub API速率限制
+    # 检查 Github API 限制
     detect_github_api_rate_limit
     exitstatus=$?
     if [ $exitstatus = 6 ]; then
         return 6
     fi
-    curl -s -L https://api.github.com/repos/openwrt/openwrt/tags|sed -n  '/^    "name": "/p'|sed -e 's/    "name": "//g' -e 's/",//g'> $TMPDIR/tagbranch.list || network_error
-    curl -s -L https://api.github.com/repos/openwrt/openwrt/branches|sed -n  '/^    "name": "/p'|sed -e 's/    "name": "//g' -e 's/",//g'>> $TMPDIR/tagbranch.list || network_error
-    # 获取最新的OpenWrt标签（tag）
-    latest_tag=$(curl -s -L https://api.github.com/repos/openwrt/openwrt/tags|sed -n  '/^    "name": "/p'|sed -e 's/    "name": "//g' -e 's/",//g'| sed -n '1p')
-    # 提示用户输入OpenWrt的branch或tag，并将用户输入的值保存到OPENWRT_TAG_BRANCH变量
+
+    # 新增：OpenWrt 源码仓库选择
+    openwrt_repo_url=$(whiptail --title "选择OpenWrt源码仓库" --menu "请选择你要克隆的OpenWrt源码仓库" 15 80 4 \
+        "1" "https://github.com/openwrt/openwrt.git" \
+        "2" "https://github.com/immortalwrt/immortalwrt.git" \
+        "3" "https://github.com/wong1975/immortalwrt.git" 3>&1 1>&2 2>&3)
+
+    case $openwrt_repo_url in
+        1) openwrt_repo_url="https://github.com/openwrt/openwrt.git" ;;
+        2) openwrt_repo_url="https://github.com/immortalwrt/immortalwrt.git" ;;
+        3) openwrt_repo_url="https://github.com/wong1975/immortalwrt.git" ;;
+        *) openwrt_repo_url="https://github.com/openwrt/openwrt.git" ;;
+    esac
+
+    # 根据选择的仓库获取 tag/branch
+    repo_api="openwrt/openwrt"
+    if [[ "$openwrt_repo_url" == *immortalwrt* ]]; then
+        repo_api="immortalwrt/immortalwrt"
+    fi
+    curl -s -L https://api.github.com/repos/$repo_api/tags|sed -n  '/^    "name": "/p'|sed -e 's/    "name": "//g' -e 's/",//g'> $TMPDIR/tagbranch.list || network_error
+    curl -s -L https://api.github.com/repos/$repo_api/branches|sed -n  '/^    "name": "/p'|sed -e 's/    "name": "//g' -e 's/",//g'>> $TMPDIR/tagbranch.list || network_error
+    latest_tag=$(curl -s -L https://api.github.com/repos/$repo_api/tags|sed -n  '/^    "name": "/p'|sed -e 's/    "name": "//g' -e 's/",//g'| sed -n '1p')
     inputbox="输入你希望该配置编译的OpenWrt branch或tag，例如v23.05.0-rc1或master"
     OPENWRT_TAG_BRANCH=$(whiptail --title "输入 tag/branch" --inputbox "$inputbox" 10 60 $latest_tag 3>&1 1>&2 2>&3)
     exitstatus=$?
-    # 如果用户选择退出，则输出提示信息并退出函数
     if [ $exitstatus != 0 ]; then
         echo "你选择了退出"
         return 6
     fi
-    # 检查用户输入的OpenWrt branch或tag是否存在，如果不存在则要求重新输入
     while [ "$(grep -c "^${OPENWRT_TAG_BRANCH}$" $TMPDIR/tagbranch.list)" -eq '0' ]; do
         whiptail --title "错误" --msgbox "输入的OpenWrt branch或tag不存在,选择ok重新输入" 10 60
         OPENWRT_TAG_BRANCH=$(whiptail --title "输入 tag/branch" --inputbox "$inputbox" 10 60 $latest_tag 3>&1 1>&2 2>&3)
@@ -158,10 +173,11 @@ function input_parameters() {
             return 6
         fi
     done
-    # 提示用户输入OpenWrt-K存储库地址，并保存到OpenWrt_K_url变量
+
+    # 默认OpenWrt-K仓库为你自己的
     while true; do
         inputbox="输入OpenWrt-K存储库地址,本工具导入该存储库中的openwrt与OpenWrt-K拓展配置"
-        OpenWrt_K_url="$(whiptail --title "输入存储库地址" --inputbox "$inputbox" 10 80 https://github.com/chenmozhijin/OpenWrt-K 3>&1 1>&2 2>&3)"
+        OpenWrt_K_url="$(whiptail --title "输入存储库地址" --inputbox "$inputbox" 10 80 https://github.com/wong1975/OpenWrt-k 3>&1 1>&2 2>&3)"
         exitstatus=$?
         OpenWrt_K_url=$(echo $OpenWrt_K_url|sed  -e 's/^[ \t]*//g' -e's/[ \t]*$//g')
         if [ $exitstatus != 0 ]; then
@@ -183,130 +199,22 @@ function input_parameters() {
             fi
         fi
     done
-    OpenWrt_K_repo=$(echo $OpenWrt_K_url|sed -e "s/https:\/\/github.com\///" -e "s/\/$//" )
-    # 提示用户输入OpenWrt-K分支
-    while true; do
-            OpenWrt_K_branch=$(whiptail --title "输入分支" --inputbox "输入OpenWrt-K存储库分支,本工具导入该存储库分支中的openwrt与OpenWrt-K拓展配置" 10 80 $(curl -s -L --retry 3 https://api.github.com/repos/$OpenWrt_K_repo|grep "\"default_branch\": \""|grep "\","| sed -e "s/  \"default_branch\": \"//g" -e "s/\",//g" ) 3>&1 1>&2 2>&3)
-            exitstatus=$?
-        if [ $exitstatus != 0 ]; then
-            echo "你选择了退出"
-            return 6
-        elif [ "$(echo "$OpenWrt_K_branch"|grep -c "[!@#$%^&:*=+\`~\'\"\(\)/ ]")" -ne '0' ];then
-            whiptail --title "错误" --msgbox "此OpenWrt-K分支中有非法字符" 10 60
-        elif [ -z "$OpenWrt_K_branch" ]; then
-            whiptail --title "错误" --msgbox "OpenWrt-K存储库分支不能为空" 10 60
-        else
-    # 检查远程仓库是否有该分支
-            if git ls-remote --exit-code --heads "$OpenWrt_K_url" "refs/heads/$OpenWrt_K_branch" 2>&1; then
-                break
-            else
-                whiptail --title "错误" --msgbox "这个OpenWrt-K存储库地址不含有分支 $OpenWrt_K_branch。" 12 70
-            fi
-        fi
-    done
-    # 提示用户输入OpenWrt-K配置名
-    while true; do
-        OpenWrt_K_config="$(whiptail --title "输入配置名" --inputbox "输入要导入的配置名（就是仓库config文件夹下的文件夹名,如：x86_64）,本工具导入该配置中的openwrt与OpenWrt-K拓展配置" 10 80 3>&1 1>&2 2>&3)"
-        exitstatus=$?
-        if [ $exitstatus != 0 ]; then
-            echo "你选择了退出"
-            return 6
-        elif [ "$(echo "$OpenWrt_K_config"|grep -c "[!@#$%^&:*=+\`~\'\"\(\)/ ]")" -ne '0' ];then
-            whiptail --title "错误" --msgbox "配置名中有非法字符，如果配置名包含空格请先删除。" 10 60
-        elif [ -z "$OpenWrt_K_config" ]; then
-            whiptail --title "错误" --msgbox "配置名为空，请输入配置名" 10 60
-        else
-            response=$(curl -s -L --retry 3 --connect-timeout 20 "https://api.github.com/repos/$OpenWrt_K_repo/contents/config?ref=$OpenWrt_K_branch")
-            if [ "$(echo "$response"|grep -c "^  \"message\": \"Not Found\"," )" -eq '1' ];then
-                whiptail --title "错误" --msgbox "未在你提供的OpenWrt-K存储库地址找到config文件夹，响应：\n$response\n点击ok退出" 14 70
-                return 6
-            elif echo "$response" | grep -q "\"name\": \"$OpenWrt_K_config\""; then
-                break
-            else
-                whiptail --title "错误" --msgbox "这个OpenWrt-K存储库不含有名为 $OpenWrt_K_config 的配置\n请检测你的配置是否存在并关注你提供OpenWrt-K存储库版本" 12 70
-            fi
-        fi
-    done
-    if [ -e buildconfig.config ]; then
-        if [ "$(grep -c "^build_dir=" buildconfig.config)" -eq '1' ];then
-            build_dir=$(grep "^build_dir=" buildconfig.config|sed -e "s/build_dir=//")
-        fi
-        if [ "$(grep -c "^kmod_compile_exclude_list=" buildconfig.config)" -eq '1' ];then
-            kmod_compile_exclude_list=$(grep "^kmod_compile_exclude_list=" buildconfig.config|sed -e "s/kmod_compile_exclude_list=//")
-        fi
 
-    fi
-    [[  -e $TMPDIR/openwrtext.config ]] && rm -rf $TMPDIR/openwrtext.config
-    DOWNLOAD_URL=https://raw.githubusercontent.com/$OpenWrt_K_repo/$OpenWrt_K_branch/config/$OpenWrt_K_config/OpenWrt-K/openwrtext.config
-    curl -o $TMPDIR/openwrtext.config -s -L --retry 3 --connect-timeout 20  $DOWNLOAD_URL
-    exitstatus=$?
-    if [ "$exitstatus" -ne "0" ];then
-        whiptail --title "错误" --msgbox "OpenWrt-K拓展配置下载失败，下载链接：\n$DOWNLOAD_URL,curl返回值：$?" 10 110
-        return 6
-    elif [ "$(cat $TMPDIR/openwrtext.config)" = "404: Not Found" ];then
-        whiptail --title "错误" --msgbox "OpenWrt-K拓展配置下载错误 “404: Not Found” ，下载链接：\n$DOWNLOAD_URL" 10 110
-        return 6
-    fi
-    if [ "$(grep -c "^ipaddr=" $TMPDIR/openwrtext.config)" -eq '1' ];then
-        ipaddr=$(grep "^ipaddr=" $TMPDIR/openwrtext.config|sed -e "s/ipaddr=//")
-    else
-        ipaddr="192.168.1.1"
-    fi
-    if [ "$(grep -c "^timezone=" $TMPDIR/openwrtext.config)" -eq '1' ];then
-        timezone=$(grep "^timezone=" $TMPDIR/openwrtext.config|sed -e "s/timezone=//")
-    else
-        timezone="CST-8"
-    fi
-    if [ "$(grep -c "^zonename=" $TMPDIR/openwrtext.config)" -eq '1' ];then
-        zonename=$(grep "^zonename=" $TMPDIR/openwrtext.config|sed -e "s/zonename=//")
-    else
-        zonename="Asia/Shanghai"
-    fi
-    if [ "$(grep -c "^golang_version=" $TMPDIR/openwrtext.config)" -eq '1' ];then
-        golang_version=$(grep "^golang_version=" $TMPDIR/openwrtext.config|sed -e "s/golang_version=//")
-    else
-        golang_version="22.x"
-    fi
-    DOWNLOAD_URL=https://raw.githubusercontent.com/$OpenWrt_K_repo/$OpenWrt_K_branch/config/$OpenWrt_K_config/OpenWrt-K/compile.config
-    curl -o $TMPDIR/compile.config -s -L --retry 3 --connect-timeout 20  $DOWNLOAD_URL
-    exitstatus=$?
-    if [ "$exitstatus" -ne "0" ];then
-        whiptail --title "错误" --msgbox "OpenWrt-K拓展配置下载失败，下载链接：\n$DOWNLOAD_URL,curl返回值：$?" 10 60
-        return 6
-    elif [ "$(cat $TMPDIR/compile.config)" = "404: Not Found" ];then
-        whiptail --title "错误" --msgbox "OpenWrt-K拓展编译配置下载错误 “404: Not Found” ，下载链接：\n$DOWNLOAD_URL" 10 60
-        return 6
-    fi
-    if [ "$(grep -c "^kmod_compile_exclude_list=" $TMPDIR/compile.config)" -eq '1' ];then
-        kmod_compile_exclude_list=$(grep "^kmod_compile_exclude_list=" $TMPDIR/compile.config|sed -e "s/kmod_compile_exclude_list=//")
-    else
-        kmod_compile_exclude_list="kmod-shortcut-fe-cm,kmod-shortcut-fe,kmod-fast-classifier,kmod-shortcut-fe-drv"
-    fi
-    if [ "$(grep -c "^use_cache=" $TMPDIR/compile.config)" -eq '1' ];then
-        use_cache=$(grep "^use_cache=" $TMPDIR/compile.config|sed -e "s/use_cache=//")
-    else
-        use_cache="true"
-    fi
-    whiptail --title "完成" --msgbox "你选择的OpenWrt branch或tag为: $OPENWRT_TAG_BRANCH\n选择的OpenWrt-K存储库地址为: $OpenWrt_K_url\n选择的OpenWrt-K存储库分支为: $OpenWrt_K_branch\n选择的配置为: $OpenWrt_K_config" 10 80
+    OpenWrt_K_repo=$(echo $OpenWrt_K_url|sed -e "s/https:\/\/github.com\///" -e "s/\/$//" )
     {
         echo "警告：请勿手动修改本文件"
-        echo OPENWRT_TAG_BRANCH="$OPENWRT_TAG_BRANCH"
-        echo OpenWrt_K_url="$OpenWrt_K_url"
-        echo OpenWrt_K_branch="$OpenWrt_K_branch"
-        echo OpenWrt_K_config="$OpenWrt_K_config"
-        echo ipaddr="$ipaddr"
-        echo timezone="$timezone"
-        echo zonename="$zonename"
-        echo golang_version="$golang_version"
-        echo use_cache="$use_cache"
+        echo OPENWRT_TAG_BRANCH=\"$OPENWRT_TAG_BRANCH\"
+        echo OpenWrt_K_url=\"$OpenWrt_K_url\"
+        echo OpenWrt_K_branch=\"$OpenWrt_K_branch\"
+        echo OpenWrt_K_config=\"$OpenWrt_K_config\"
+        echo ipaddr=\"$ipaddr\"
+        echo timezone=\"$timezone\"
+        echo zonename=\"$zonename\"
+        echo golang_version=\"$golang_version\"
+        echo use_cache=\"$use_cache\"
         echo "kmod_compile_exclude_list=$kmod_compile_exclude_list"
+        echo "OPENWRT_REPO_URL=\"$openwrt_repo_url\""
     } > buildconfig.config
-    if [ -n "$build_dir" ];then
-        echo build_dir="$build_dir" >> buildconfig.config
-        rm -rf "$build_dir"/OpenWrt-K
-        whiptail --title "提示" --msgbox "请重新准备运行环境" 10 80
-    fi
-    # 调用config_ext_packages函数进行后续配置
     config_ext_packages
 }
 
@@ -322,7 +230,7 @@ function import_ext_packages_config() {
         return 11
     fi
     if [ $OPTION = 1 ]; then
-        DOWNLOAD_URL=https://raw.githubusercontent.com/chenmozhijin/OpenWrt-K/main/config/default-extpackages.config
+        DOWNLOAD_URL=https://raw.githubusercontent.com/wong1975/OpenWrt-K/main/config/default-extpackages.config
     elif [ $OPTION = 2 ]; then
         # 从配置文件buildconfig.config中提取OpenWrt-K仓库的URL
         OpenWrt_K_url=$(grep "^OpenWrt_K_url=" buildconfig.config|sed  "s/OpenWrt_K_url=//")
@@ -801,9 +709,7 @@ function menu() {
 
 # 准备运行环境，克隆OpenWrt和拓展软件包仓库
 function prepare() {
-    # 创建OpenWrt-K_config_build_dir目录
     mkdir -p OpenWrt-K_config_build_dir
-    # 检查是否已存在build_dir配置，若有则设置相应变量，否则创建新的build_dir配置
     if [ "$(grep -c "^build_dir=" buildconfig.config)" -eq '1' ];then
         build_dir=$(grep "^build_dir=" buildconfig.config|sed  "s/build_dir=//")
         openwrt_dir=$build_dir/openwrt
@@ -814,19 +720,18 @@ function prepare() {
         sed -i "\$a\build_dir=$build_dir" $build_dir/../buildconfig.config
         openwrt_dir=$build_dir/openwrt
     fi
-    # 获取OpenWrt-K的存储库URL、OpenWrt-K所在目录和选择的OPENWRT分支/标签
     OpenWrt_K_url=$(grep "^OpenWrt_K_url=" $build_dir/../buildconfig.config|sed  "s/OpenWrt_K_url=//")
     OpenWrt_K_dir=$build_dir/$(echo $OpenWrt_K_url|sed -e "s/https:\/\///" -e "s/\/$//" -e "s/[.\/a-zA-Z0-9]\{1,111\}\///g" -e "s/\ .*//g")
     OpenWrt_K_branch=$(grep "^OpenWrt_K_branch=" $build_dir/../buildconfig.config|sed  "s/OpenWrt_K_branch=//")
     OpenWrt_K_config=$(grep "^OpenWrt_K_config" $build_dir/../buildconfig.config|sed  "s/OpenWrt_K_config=//")
     OPENWRT_TAG_BRANCH=$(grep "^OPENWRT_TAG_BRANCH=" $build_dir/../buildconfig.config|sed  "s/OPENWRT_TAG_BRANCH=//")
-    # 检查OpenWrt-K目录是否已存在，若存在则执行git pull更新，否则执行git clone克隆
+    openwrt_repo_url=$(grep "^OPENWRT_REPO_URL=" $build_dir/../buildconfig.config | sed 's/OPENWRT_REPO_URL=//;s/"//g')
+    [ -z "$openwrt_repo_url" ] && openwrt_repo_url="https://github.com/openwrt/openwrt.git"
     if [ -d "$OpenWrt_K_dir" ]; then
         git -C $OpenWrt_K_dir pull || return 4
     else
         git clone $OpenWrt_K_url $OpenWrt_K_dir -b $OpenWrt_K_branch || return 4
     fi
-    # 检查openwrt目录是否已存在，若存在则执行git pull更新并检查分支/标签，否则执行git clone克隆
     if [ -d "$openwrt_dir" ]; then
         cd $openwrt_dir
         if ! [[ "$OPENWRT_TAG_BRANCH" =~ ^v.* ]]; then
@@ -837,17 +742,16 @@ function prepare() {
                 git -C $openwrt_dir pull || return 4
                 git checkout $OPENWRT_TAG_BRANCH
                 exitstatus=$?
-                # 若检出标签失败，则删除openwrt目录并重新克隆OpenWrt源码
                 if [ $exitstatus -ne 0 ]; then
                     rm -rf $openwrt_dir
-                    git clone https://github.com/openwrt/openwrt $openwrt_dir || return 4
+                    git clone $openwrt_repo_url $openwrt_dir || return 4
                     cd $openwrt_dir
                     git checkout $OPENWRT_TAG_BRANCH || return 7
                 fi
             fi
         fi
     else
-        git clone https://github.com/openwrt/openwrt $openwrt_dir || return 4
+        git clone $openwrt_repo_url $openwrt_dir || return 4
         cd $openwrt_dir
         git checkout $OPENWRT_TAG_BRANCH || return 7
     fi
