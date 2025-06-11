@@ -1,0 +1,5 @@
+config  --- 存储openwrt编译配置与OpenWrt-k额外的配置
+
+files   --- openwrt固件自定义文件
+scripts --- 编译时所用的部分脚本
+config_build_tool.sh --- OpenWrt-k配置构建工具
