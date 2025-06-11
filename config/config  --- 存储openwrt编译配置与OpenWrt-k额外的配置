@@ -1,4 +1,4 @@
-config  --- 存储openwrt编译配置与OpenWrt-k额外的配置
+config  --- 存储 openwrt编译配置 与 OpenWrt-k额外的配置
 
 files   --- openwrt固件自定义文件
 scripts --- 编译时所用的部分脚本
