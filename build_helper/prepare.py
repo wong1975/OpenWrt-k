@@ -29,6 +29,11 @@ from .utils.error import ConfigError, ConfigParseError
 import os
 import re
 
+from .utils.logger import logger
+from .utils.error import ConfigError, ConfigParseError
+import os
+import re
+
 def parse_configs() -> dict[str, dict]:
     configs: dict[str, dict] = {}
     for name, path in paths.configs.items():
@@ -36,22 +41,19 @@ def parse_configs() -> dict[str, dict]:
         # fallback 逻辑
         if not os.path.exists(real_path):
             if ("ax3600-stock" in name or "ax3600-stock" in path):
-                # 支持多级目录下查找 fallback
                 conf_root = os.path.dirname(path)
-                # 若 conf_root 是 config/ 目录
                 fallback_dir = os.path.join(conf_root, "xiaomi_ax3600")
                 if not os.path.exists(fallback_dir):
-                    # 兼容 config/xiaomi_ax3600 结构
                     fallback_dir = os.path.join(os.path.dirname(conf_root), "xiaomi_ax3600")
                 if os.path.exists(fallback_dir):
                     logger.warning("配置 %s 不存在，自动使用 xiaomi_ax3600 配置: %s", name, fallback_dir)
                     real_path = fallback_dir
                 else:
                     logger.warning("配置 %s 不存在，也没有 fallback xiaomi_ax3600，跳过", name)
-                    continue  # 跳过本次循环
+                    continue
             else:
                 logger.warning("配置 %s 不存在，跳过", name)
-                continue  # 跳过本次循环
+                continue
 
         logger.info("解析配置: %s", name)
         configs[name] = {"path": real_path, "name": name}
@@ -61,28 +63,35 @@ def parse_configs() -> dict[str, dict]:
             msg = f"未找到配置{name}的openwrt文件夹: {k_config_path}"
             raise NotADirectoryError(msg)
 
-        # 下面是你的原有配置解析逻辑
-        configs[name]["compile"] = parse_config(os.path.join(k_config_path, "compile.config"),
-                                                ("openwrt_tag/branch", "kmod_compile_exclude_list", "use_cache"))
-
+        configs[name]["compile"] = parse_config(
+            os.path.join(k_config_path, "compile.config"),
+            ("openwrt_tag/branch", "kmod_compile_exclude_list", "use_cache")
+        )
         if isinstance(configs[name]["compile"]["kmod_compile_exclude_list"], str):
-            configs[name]["compile"]["kmod_compile_exclude_list"] = [configs[name]["compile"]["kmod_compile_exclude_list"]]
+            configs[name]["compile"]["kmod_compile_exclude_list"] = [
+                configs[name]["compile"]["kmod_compile_exclude_list"]
+            ]
 
-        configs[name]["openwrtext"] = parse_config(os.path.join(k_config_path, "openwrtext.config"), 
-                                                   ("ipaddr", "timezone", "zonename", "golang_version"))
+        configs[name]["openwrtext"] = parse_config(
+            os.path.join(k_config_path, "openwrtext.config"),
+            ("ipaddr", "timezone", "zonename", "golang_version")
+        )
+
         extpackages_config = os.path.join(k_config_path, "extpackages.config")
         configs[name]["extpackages"] = {}
         if os.path.isfile(extpackages_config):
             extpackages = {}
             with open(extpackages_config, encoding="utf-8") as f:
                 for line in f:
-                    matched = re.match(r"^EXT_PACKAGES_(?P<key>NAME|PATH|REPOSITORIE|BRANCH)\[(?P<id>\d+)\]=\"(?P<value>.*?)\"$", line.strip())
+                    matched = re.match(
+                        r"^EXT_PACKAGES_(?P<key>NAME|PATH|REPOSITORIE|BRANCH)\[(?P<id>\d+)\]=\"(?P<value>.*?)\"$",
+                        line.strip()
+                    )
                     if matched:
                         if matched.group("id") not in extpackages:
                             extpackages[matched.group("id")] = {}
                         extpackages[matched.group("id")][matched.group("key")] = matched.group("value")
             for i, pkg in extpackages.items():
-                pkg: dict
                 keys = ("NAME", "PATH", "REPOSITORIE", "BRANCH")
                 for key in keys:
                     if key not in pkg:
@@ -90,7 +99,7 @@ def parse_configs() -> dict[str, dict]:
                         raise ConfigParseError(msg)
                 pkg_name = pkg["NAME"]
                 if pkg_name not in configs[name]["extpackages"]:
-                    configs[name]["extpackages"][pkg_name] = {k:v for k, v in pkg.items() if k != "NAME"}
+                    configs[name]["extpackages"][pkg_name] = {k: v for k, v in pkg.items() if k != "NAME"}
                 else:
                     msg = f"配置{name}的extpackages中存在重复的包名: {pkg_name}"
                     raise ConfigParseError(msg)
@@ -105,44 +114,6 @@ def parse_configs() -> dict[str, dict]:
 
     if not configs:
         msg = "没有找到任何可用配置文件，当前 config 目录内容为: " + str(os.listdir(os.path.dirname(list(paths.configs.values())[0])))
-        raise ConfigError(msg)
-    return configs
-
-        configs[name]["openwrtext"] = parse_config(os.path.join(k_config_path, "openwrtext.config"), ("ipaddr", "timezone", "zonename", "golang_version"))
-        extpackages_config = os.path.join(k_config_path, "extpackages.config")
-        configs[name]["extpackages"] = {}
-        if os.path.isfile(extpackages_config):
-            extpackages = {}
-            with open(extpackages_config, encoding="utf-8") as f:
-                for line in f:
-                    matched = re.match(r"^EXT_PACKAGES_(?P<key>NAME|PATH|REPOSITORIE|BRANCH)\[(?P<id>\d+)\]=\"(?P<value>.*?)\"$", line.strip())
-                    if matched:
-                        if matched.group("id") not in extpackages:
-                            extpackages[matched.group("id")] = {}
-                        extpackages[matched.group("id")][matched.group("key")] = matched.group("value")
-            for i, pkg in extpackages.items():
-                pkg: dict
-                keys = ("NAME", "PATH", "REPOSITORIE", "BRANCH")
-                for key in keys:
-                    if key not in pkg:
-                        msg = f"配置{name}的extpackages{i}缺少{key}"
-                        raise ConfigParseError(msg)
-                pkg_name = pkg["NAME"]
-                if name not in configs[name]["extpackages"]:
-                    configs[name]["extpackages"][pkg["NAME"]] = {k:v for k, v in pkg.items() if k != "NAME"}
-                else:
-                    msg = f"配置{name}的extpackages中存在重复的包名: {pkg_name}"
-                    raise ConfigParseError(msg)
-
-        configs[name]["openwrt"] = ""
-        for file in os.listdir(path):
-            if os.path.isfile(os.path.join(path, file)) and file.endswith(".config"):
-                with open(os.path.join(path, file), encoding="utf-8") as f:
-                    configs[name]["openwrt"] += f.read() + "\n"
-        if configs[name]["compile"]["use_cache"] is True:
-            configs[name]["openwrt"] += "CONFIG_DEVEL=y\nCONFIG_CCACHE=y"
-    if not configs:
-        msg = "没有找到任何可用配置文件"
         raise ConfigError(msg)
     return configs
 
