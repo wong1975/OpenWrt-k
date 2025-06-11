@@ -38,6 +38,13 @@ jobs:
       - name: 建立环境
         uses: ./.github/action/prepare
 
+      - name: 创建 ax3600-stock 配置软链接
+        run: |
+          cd config
+          if [ ! -e qualcommax_ipq807x_xiaomi_ax3600-stock ]; then
+            ln -s xiaomi_ax3600 qualcommax_ipq807x_xiaomi_ax3600-stock
+          fi
+
       - name: 准备
         id: run
         working-directory: /opt/OpenWrt-K
