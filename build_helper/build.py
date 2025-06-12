@@ -239,7 +239,7 @@ def build_image_builder(cfg: dict) -> None:
             if file.startswith("kmod-") and file.endswith(".ipk"):
                 shutil.copy2(os.path.join(root, file), kmods_path)
                 logger.debug(f"复制 {file} 到 {kmods_path}")
-    uploader.add(f"kmods-{cfg['name']}", kmods_path, retention_days=1)
+    uploader.add(f"kmods-{cfg["device_name"]}", kmods_path, retention_days=1)
 
     target, subtarget = openwrt.get_target()
     if target is None or subtarget is None:
@@ -253,7 +253,7 @@ def build_image_builder(cfg: dict) -> None:
         ext = "xz"
     shutil.move(bl_path, os.path.join(paths.uploads, f"openwrt-imagebuilder.tar.{ext}"))
     bl_path = os.path.join(paths.uploads, f"openwrt-imagebuilder.tar.{ext}")
-    uploader.add(f"Image_Builder-{cfg['name']}", bl_path, retention_days=1, compression_level=0)
+    uploader.add(f"Image_Builder-{cfg["device_name"]}", bl_path, retention_days=1, compression_level=0)
 
     logger.info("删除旧缓存...")
     del_cache(get_cache_restore_key(openwrt, cfg))
@@ -274,4 +274,4 @@ def build_images(cfg: dict) -> None:
         raise RuntimeError(msg)
 
     logger.info("准备上传...")
-    uploader.add(f"firmware-{cfg['name']}", os.path.join(ib.path, "bin", "targets", target, subtarget), retention_days=1, compression_level=0)
+    uploader.add(f"firmware-{cfg["device_name"]}", os.path.join(ib.path, "bin", "targets", target, subtarget), retention_days=1, compression_level=0)
