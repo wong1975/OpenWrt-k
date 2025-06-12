@@ -99,7 +99,7 @@ def parse_configs() -> dict[str, dict[str, Any]]:
                     raise ConfigParseError(msg)
 
         configs[name]["openwrt"] = ""
-        for file in os.listdir(real_path):
+        for file in os.listdir(path):
             if os.path.isfile(os.path.join(path, file)) and file.endswith(".config"):
                 with open(os.path.join(path, file), encoding="utf-8") as f:
                     configs[name]["openwrt"] += f.read() + "\n"
