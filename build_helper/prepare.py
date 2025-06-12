@@ -48,11 +48,11 @@ def parse_configs() -> dict[str, dict[str, Any]]:
                         break
         if not device_name:
             raise Exception(f"{name} 未找到有效的 DEVICE_XXX 定义")
-        configs[name] = {"path": real_path, "name": name, "device_name": device_name}
+        configs[name] = {"path": path, "name": name, "device_name": device_name}
         # 追加设备名到 config
         #configs[name]["device_name"] = device_name
         
-        k_config_path = os.path.join(real_path, "OpenWrt-K")
+        k_config_path = os.path.join(path, "OpenWrt-K")
         if not os.path.isdir(k_config_path):
             msg = f"未找到配置{name}的openwrt文件夹: {k_config_path}"
             raise NotADirectoryError(msg)
@@ -100,8 +100,8 @@ def parse_configs() -> dict[str, dict[str, Any]]:
 
         configs[name]["openwrt"] = ""
         for file in os.listdir(real_path):
-            if os.path.isfile(os.path.join(real_path, file)) and file.endswith(".config"):
-                with open(os.path.join(real_path, file), encoding="utf-8") as f:
+            if os.path.isfile(os.path.join(path, file)) and file.endswith(".config"):
+                with open(os.path.join(path, file), encoding="utf-8") as f:
                     configs[name]["openwrt"] += f.read() + "\n"
         if configs[name]["compile"].get("use_cache") is True:
             configs[name]["openwrt"] += "CONFIG_DEVEL=y\nCONFIG_CCACHE=y"
