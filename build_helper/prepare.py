@@ -1,4 +1,4 @@
-# OpenWrt 源码仓库 URL ：在192行 pygit2.clone_repository
+# OpenWrt 源码仓库 URL ：在208行 pygit2.clone_repository
 # SPDX-FileCopyrightText: Copyright (c) 2024-2025 沉默の金 <cmzj@cmzj.org>
 # SPDX-License-Identifier: MIT
 import gzip
@@ -204,8 +204,8 @@ def prepare(configs: dict[str, dict[str, Any]]) -> None:
     logger.info("开始克隆openwrt源码...")
     openwrt_paths = os.path.join(paths.workdir, "openwrts")
     cfg_names = list(configs.keys())
-    pygit2.clone_repository("https://github.com/openwrt/openwrt", os.path.join(openwrt_paths, cfg_names[0]))
-    #pygit2.clone_repository("https://github.com/immortalwrt/immortalwrt", os.path.join(openwrt_paths, cfg_names[0]))
+    #pygit2.clone_repository("https://github.com/openwrt/openwrt", os.path.join(openwrt_paths, cfg_names[0]))
+    pygit2.clone_repository("https://github.com/immortalwrt/immortalwrt", os.path.join(openwrt_paths, cfg_names[0]))
     #pygit2.clone_repository("https://github.com/wong1975/immortalwrt", os.path.join(openwrt_paths, cfg_names[0]))
 
     # 复制源码
