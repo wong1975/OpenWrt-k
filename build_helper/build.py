@@ -273,5 +273,15 @@ def build_images(cfg: dict) -> None:
         msg = "无法获取target信息"
         raise RuntimeError(msg)
 
+    
+    firmware_path = os.path.join(ib.path, "bin", "targets", target, subtarget)
     logger.info("准备上传...")
-    uploader.add(f"firmware-{cfg["device_name"]}", os.path.join(ib.path, "bin", "targets", target, subtarget), retention_days=1, compression_level=0)
+    # 记录所有固件文件
+    for file in os.listdir(firmware_path):
+        logger.info(f"准备上传固件: {file}")
+
+    # 执行上传
+    uploader.add(f"firmware-{cfg['device_name']}", firmware_path, retention_days=3, compression_level=0)
+
+    
+    #uploader.add(f"firmware-{cfg["device_name"]}", os.path.join(ib.path, "bin", "targets", target, subtarget), retention_days=3, compression_level=0)
