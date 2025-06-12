@@ -24,16 +24,6 @@ from .utils.upload import uploader
 from .utils.utils import parse_config
 
 
-from .utils.logger import logger
-from .utils.error import ConfigError, ConfigParseError
-import os
-import re
-
-from .utils.logger import logger
-from .utils.error import ConfigError, ConfigParseError
-import os
-import re
-
 def parse_configs() -> dict[str, dict]:
     configs: dict[str, dict] = {}
     for name, path in paths.configs.items():
