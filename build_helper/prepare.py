@@ -58,6 +58,22 @@ def parse_configs() -> dict[str, dict]:
         logger.info("解析配置: %s", name)
         configs[name] = {"path": real_path, "name": name}
 
+        # 自动识别 target.config 里的 DEVICE 名
+        device_name = None
+        target_config_path = os.path.join(real_path, "target.config")
+        if os.path.isfile(target_config_path):
+            with open(target_config_path, encoding="utf-8") as f:
+                for line in f:
+                    m = re.match(r"CONFIG_TARGET_qualcommax_ipq807x_DEVICE_([a-zA-Z0-9\-_]+)=y", line)
+                    if m:
+                        device_name = m.group(1)
+                        break
+        if not device_name:
+            raise Exception(f"{name} 未找到有效的 DEVICE_XXX 定义")
+        configs[name] = {"path": real_path, "name": name, "device_name": device_name}
+        # 追加设备名到 config
+        #configs[name]["device_name"] = device_name
+        
         k_config_path = os.path.join(real_path, "OpenWrt-K")
         if not os.path.isdir(k_config_path):
             msg = f"未找到配置{name}的openwrt文件夹: {k_config_path}"
