@@ -498,6 +498,8 @@ def prepare_cfg(config: dict[str, Any],
         f.write(content)
     logger.debug("openwrt-k_info: %s", content)
 
+    cfg_name = cfg["device_name"]
+    logger.debug("设备名称 cfg_name = %s", cfg_name)
     logger.info("%s生成源代码归档", cfg_name)
     shutil.rmtree(os.path.join(openwrt.path, ".git"))
     os.makedirs(os.path.join(paths.uploads, cfg_name), exist_ok=True)
