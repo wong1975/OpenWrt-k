@@ -73,7 +73,7 @@ def del_cache(key_prefix: str) -> None:
 
 def get_release_suffix(cfg: dict) -> tuple[str, str]:
     release_suffix = f"({cfg["target"]}-{cfg["subtarget"]})-[{cfg["compile"]["openwrt_tag/branch"]}]"
-    tag_suffix = f"({cfg["target"]}-{cfg["subtarget"]})-({cfg["compile"]["openwrt_tag/branch"]})-{cfg["name"]}"
+    tag_suffix = f"({cfg["target"]}-{cfg["subtarget"]})-({cfg["compile"]["openwrt_tag/branch"]})-{cfg["device_name"]}"
     return release_suffix, tag_suffix
 
 def new_release(cfg: dict, assets: list[str], body: str) -> None:
