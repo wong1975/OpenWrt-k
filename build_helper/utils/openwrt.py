@@ -424,36 +424,6 @@ class OpenWrt(OpenWrtBase):
                         targetinfos["target"] = target
         return targetinfos
 
-import os
-import re
-import logging
-
-logger = logging.getLogger(__name__)
-
-class ConfigModifier:
-    def __init__(self, path):
-        self.path = path
-
-    def get_packageinfos(self):
-        """获取所有可用的 package 信息"""
-        # 假设这里有代码实现从 OpenWrt 获取 package 信息
-        return {}
-
-    def get_targetinfo(self):
-        """获取 target 默认包信息"""
-        # 假设这里有代码实现从 OpenWrt 获取目标平台信息
-        return {}
-
-    def make_defconfig(self):
-        """让新的 .config 配置生效"""
-        # 这里应该调用 OpenWrt 的 defconfig 处理
-        pass
-
-    def get_diff_config(self):
-        """获取配置变化"""
-        # 假设这里能比较更改后的 .config
-        return ""
-
     def enable_kmods(self, exclude_list: list[str], only_kmods: bool = False) -> None:
         exclude_pattern = re.compile(r"|".join(exclude_list))
         packages = self.get_packageinfos()
