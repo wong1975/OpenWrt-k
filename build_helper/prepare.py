@@ -475,19 +475,11 @@ def prepare_cfg(config: dict[str, Any],
         f.write(content)
     logger.debug("openwrt-k_info: %s", content)
 
-    logger.debug("设备名称: %s", cfg["device_name"])
-    #logger.info("%s生成源代码归档", cfg_name)
-    #shutil.rmtree(os.path.join(openwrt.path, ".git"))
-    #os.makedirs(os.path.join(paths.uploads, cfg_name), exist_ok=True)
-    #tar_path = os.path.join(paths.uploads, cfg_name, "openwrt-source.tar.gz")
-    #openwrt.archive(tar_path)
-
-    #return cfg_name, config, tar_path
-
-    logger.info("%s生成源代码归档", cfg["device_name"])
+    #logger.debug("设备名称: %s", cfg["device_name"])
+    logger.info("%s生成源代码归档", cfg_name)
     shutil.rmtree(os.path.join(openwrt.path, ".git"))
-    os.makedirs(os.path.join(paths.uploads, cfg["device_name"]), exist_ok=True)
-    tar_path = os.path.join(paths.uploads, cfg["device_name"], "openwrt-source.tar.gz")
+    os.makedirs(os.path.join(paths.uploads, cfg_name), exist_ok=True)
+    tar_path = os.path.join(paths.uploads, cfg_name, "openwrt-source.tar.gz")
     openwrt.archive(tar_path)
 
-    return cfg["device_name"], config, tar_path
+    return cfg_name, config, tar_path
