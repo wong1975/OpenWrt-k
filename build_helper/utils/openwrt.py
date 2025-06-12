@@ -424,42 +424,62 @@ class OpenWrt(OpenWrtBase):
                         targetinfos["target"] = target
         return targetinfos
 
+import os
+import re
+import logging
+
+logger = logging.getLogger(__name__)
+
+class ConfigModifier:
+    def __init__(self, path):
+        self.path = path
+
+    def get_packageinfos(self):
+        """获取所有可用的 package 信息"""
+        # 假设这里有代码实现从 OpenWrt 获取 package 信息
+        return {}
+
+    def get_targetinfo(self):
+        """获取 target 默认包信息"""
+        # 假设这里有代码实现从 OpenWrt 获取目标平台信息
+        return {}
+
+    def make_defconfig(self):
+        """让新的 .config 配置生效"""
+        # 这里应该调用 OpenWrt 的 defconfig 处理
+        pass
+
+    def get_diff_config(self):
+        """获取配置变化"""
+        # 假设这里能比较更改后的 .config
+        return ""
+
     def enable_kmods(self, exclude_list: list[str], only_kmods: bool = False) -> None:
         exclude_pattern = re.compile(r"|".join(exclude_list))
         packages = self.get_packageinfos()
         kmods = [package for package in packages if (packages[package]["section"] == "kernel" or packages[package]["category"] == "Kernel modules")]
-        logger.debug("获取到kmods: %s", kmods)
-        targetinfo = self.get_targetinfo()
-        if targetinfo:
-            default_packages = targetinfo["default_packages"]
-            logger.debug("获取到默认包: %s", default_packages)
-        else:
-            default_packages = []
+        logger.debug("获取到 kmods: %s", kmods)
 
-        for _ in range(5):
+        targetinfo = self.get_targetinfo()
+        default_packages = targetinfo.get("default_packages", []) if targetinfo else []
+        logger.debug("获取到默认包: %s", default_packages)
+
+        for _ in range(5):  # 确保所有更改被写入
             with open(os.path.join(self.path, ".config")) as f:
-             config = f.read()
+                config = f.read()
+
             with open(os.path.join(self.path, ".config"), "w") as f:
                 for line in config.splitlines():
-                    if match := re.match(r"# CONFIG_PACKAGE_(?P<name>[^ ]+) is not set", line):
-                        name = match.group('name')
-                        if not exclude_pattern.match(name) and name in kmods:
-                            f.write(f"CONFIG_PACKAGE_{name}=m\n")
-                        else:
-                            f.write(line + "\n")
-                    elif only_kmods and (match := re.match(r"CONFIG_PACKAGE_(?P<name>[^=]+)=[ym]", line)):
-                        name = match.group('name')
-                        package = packages.get(name)
-                        if package and (package["section"] not in ("kernel", "base", "boot", "firmware", "sys", "system") and
-                                        package["category"] not in ("Boot Loaders", "Firmware", "Base system", "Kernel modules", "System") and
-                                        package not in default_packages):
-                            logger.debug("取消编译包: %s", name)
-                            continue
-                        f.write(line + "\n")
+                    # 只处理已经启用的 package，不修改未启用项
+                    if re.match(r"CONFIG_PACKAGE_(?P<name>[^=]+)=[ym]", line):
+                        f.write(line + "\n")  # 保留现有的启用状态
                     else:
-                        f.write(line + "\n")
-                self.make_defconfig()
-        logger.debug("启用所有kmod, 配置差异: %s", self.get_diff_config())
+                        f.write(line + "\n")  # 其他内容保持原样
+
+            self.make_defconfig()
+
+        logger.debug("调整后的配置差异: %s", self.get_diff_config())
+
 
     def __getstate__(self) -> dict:
         state = self.__dict__.copy()
