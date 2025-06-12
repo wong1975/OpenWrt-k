@@ -37,7 +37,8 @@ def parse_configs() -> dict[str, dict[str, Any]]:
 
         # 自动识别 target.config 里的 DEVICE 名
         device_name = None
-        target_config_path = os.path.join(real_path, "target.config")
+        #target_config_path = os.path.join(real_path, "target.config")
+        target_config_path = os.path.join(path, "target.config")
         if os.path.isfile(target_config_path):
             with open(target_config_path, encoding="utf-8") as f:
                 for line in f:
