@@ -24,29 +24,16 @@ from .utils.upload import uploader
 from .utils.utils import parse_config
 
 
-def parse_configs() -> dict[str, dict]:
+def parse_configs() -> dict[str, dict[str, Any]]:
+    """解析配置文件"""
     configs: dict[str, dict] = {}
     for name, path in paths.configs.items():
-        real_path = path
-        # fallback 逻辑
-        if not os.path.exists(real_path):
-            if ("ax3600-stock" in name or "ax3600-stock" in path):
-                conf_root = os.path.dirname(path)
-                fallback_dir = os.path.join(conf_root, "xiaomi_ax3600")
-                if not os.path.exists(fallback_dir):
-                    fallback_dir = os.path.join(os.path.dirname(conf_root), "xiaomi_ax3600")
-                if os.path.exists(fallback_dir):
-                    logger.warning("配置 %s 不存在，自动使用 xiaomi_ax3600 配置: %s", name, fallback_dir)
-                    real_path = fallback_dir
-                else:
-                    logger.warning("配置 %s 不存在，也没有 fallback xiaomi_ax3600，跳过", name)
-                    continue
-            else:
-                logger.warning("配置 %s 不存在，跳过", name)
-                continue
-
         logger.info("解析配置: %s", name)
-        configs[name] = {"path": real_path, "name": name}
+        configs[name] = {"path": path, "name": name}
+        k_config_path = os.path.join(path, "OpenWrt-K")
+        if not os.path.isdir(k_config_path):
+            msg = f"未找到配置{name}的openwrt文件夹: {k_config_path}"
+            raise NotADirectoryError(msg)
 
         # 自动识别 target.config 里的 DEVICE 名
         device_name = None
