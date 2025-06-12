@@ -1,3 +1,5 @@
+#195 启用了所有内核模块（kmod），但排除了用户指定的模块列表。
+
 # SPDX-FileCopyrightText: Copyright (c) 2024-2025 沉默の金 <cmzj@cmzj.org>
 # SPDX-License-Identifier: MIT
 import os
@@ -189,19 +191,19 @@ def build_packages(cfg: dict) -> None:
     del_cache(get_cache_restore_key(openwrt, cfg))
 
 def build_image_builder(cfg: dict) -> None:
-    openwrt = OpenWrt(os.path.join(paths.workdir, "openwrt"))
+    openwrt = OpenWrt(os.path.join(paths.workdir, "openwrt")) #代码实例化 OpenWrt，设置工作目录
 
     logger.info("修改配置(设置编译所有kmod/取消编译其他软件包/取消生成镜像/)...")
-    openwrt.enable_kmods(cfg["compile"]["kmod_compile_exclude_list"], only_kmods=True)
+    openwrt.enable_kmods(cfg["compile"]["kmod_compile_exclude_list"], only_kmods=True) #启用了所有内核模块（kmod），但排除了用户指定的模块列表。
     with open(os.path.join(openwrt.path, ".config")) as f:
         config = f.read()
     with open(os.path.join(openwrt.path, ".config"), "w") as f:
-        for line in config.splitlines():
+        for line in config.splitlines(): #禁用某些类型的镜像格式
             if ((match := re.match(r"CONFIG_(?P<name>[^_=]+)_IMAGES=y", line)) or
                 (match := re.match(r"CONFIG_TARGET_ROOTFS_(?P<name>[^_=]+)=y", line)) or
                 (match := re.match(r"CONFIG_TARGET_IMAGES_(?P<name>[^_=]+)=y", line))):
                 name = match.group("name")
-                if name in ("ISO", "VDI", "VMDK", "VHDX", "TARGZ", "CPIOGZ", "EXT4FS", "SQUASHFS", "GZIP"):
+                if name in ("ISO", "VDI", "VMDK", "VHDX", "TARGZ", "CPIOGZ", "EXT4FS", "GZIP"): # "SQUASHFS",
                     logger.debug(f"不构建 {name} 格式镜像")
                     f.write(line.replace("=y", "=n") + "\n")
             else:
