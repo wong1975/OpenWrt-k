@@ -247,6 +247,36 @@ def build_image_builder(cfg: dict) -> None:
         msg = "无法获取target信息"
         raise RuntimeError(msg)
 
+    bin_path = os.path.join(ib.path, "bin")
+    targets_path = os.path.join(bin_path, "targets", target, subtarget)
+    qualcomm_path = os.path.join(bin_path, "qualcommax")
+    ipq807x_path = os.path.join(bin_path, "ipq807x")
+
+    # 列出 bin 目录下的所有文件
+    bin_files = os.listdir(bin_path)
+    logger.debug(f"bin 目录下的文件: {bin_files}")
+
+    # 列出 targets 目录下的所有文件
+    if os.path.exists(targets_path):
+        target_files = os.listdir(targets_path)
+        logger.debug(f"targets 目录下的文件: {target_files}")
+    else:
+        logger.warning(f"targets 目录不存在: {targets_path}")
+
+    # 列出 qualcommax 目录下的所有文件
+    if os.path.exists(qualcomm_path):
+        qualcomm_files = os.listdir(qualcomm_path)
+        logger.debug(f"qualcommax 目录下的文件: {qualcomm_files}")
+    else:
+        logger.warning(f"qualcommax 目录不存在: {qualcomm_path}")
+
+    # 列出 ipq807x 目录下的所有文件
+    if os.path.exists(ipq807x_path):
+        ipq807x_files = os.listdir(ipq807x_path)
+        logger.debug(f"ipq807x 目录下的文件: {ipq807x_files}")
+    else:
+        logger.warning(f"ipq807x 目录不存在: {ipq807x_path}")
+    
     #bl_path = os.path.join(openwrt.path, "bin", "targets", target, subtarget, f"openwrt-imagebuilder-{target}-{subtarget}.Linux-x86_64.tar.zst")
     #ext = "zst"
     #if not os.path.exists(bl_path):
