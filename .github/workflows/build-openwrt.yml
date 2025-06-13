@@ -166,6 +166,12 @@ jobs:
         working-directory: /opt/OpenWrt-K
         run: python3 -m build_helper --task build_image_builder --config ${{ matrix.config }}
 
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: (${{ matrix.name }})
+          path: bin/targets/qualcommax/ipq807x
+
       #调试输出目录
       - name: Debug Output Directory
         run: ls -R /home/runner/work/OpenWrt-k/OpenWrt-k/workdir/openwrt/bin/targets/qualcommax/ipq807x/
