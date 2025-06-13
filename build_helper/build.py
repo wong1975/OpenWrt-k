@@ -247,10 +247,10 @@ def build_image_builder(cfg: dict) -> None:
         msg = "无法获取target信息"
         raise RuntimeError(msg)
 
-    bin_path = os.path.join(ib.path, "bin")
+    bin_path = os.path.join(openwrt.path, "bin")
     targets_path = os.path.join(bin_path, "targets", target, subtarget)
-    qualcomm_path = os.path.join(bin_path, "qualcommax")
-    ipq807x_path = os.path.join(bin_path, "ipq807x")
+    qualcomm_path = os.path.join(targets_path, "qualcommax")
+    ipq807x_path = os.path.join(qualcomm_path, "ipq807x")
 
     # 列出 bin 目录下的所有文件
     bin_files = os.listdir(bin_path)
