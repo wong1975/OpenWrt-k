@@ -295,7 +295,7 @@ def build_image_builder(cfg: dict) -> None:
         logger.info(f"Found Image Builder: {bl_path}")
     elif os.path.exists(path_xz):
         bl_path = path_xz
-    ext = None
+        ext = None
         logger.info(f"Found Image Builder: {bl_path}")
     else:
         logger.error(f"Image Builder not found. Checked paths:")
