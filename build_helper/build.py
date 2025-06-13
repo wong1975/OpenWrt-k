@@ -247,10 +247,45 @@ def build_image_builder(cfg: dict) -> None:
         msg = "无法获取target信息"
         raise RuntimeError(msg)
 
-    bl_path = os.path.join(openwrt.path, "bin", "targets", target, subtarget, f"openwrt-imagebuilder-{target}-{subtarget}.Linux-x86_64.tar.zst")
-    ext = "zst"
-    if not os.path.exists(bl_path):
-        bl_path = os.path.join(openwrt.path, "bin", "targets", target, subtarget, f"openwrt-imagebuilder-{target}-{subtarget}.Linux-x86_64.tar.xz")
+    #bl_path = os.path.join(openwrt.path, "bin", "targets", target, subtarget, f"openwrt-imagebuilder-{target}-{subtarget}.Linux-x86_64.tar.zst")
+    #ext = "zst"
+    #if not os.path.exists(bl_path):
+    #    bl_path = os.path.join(openwrt.path, "bin", "targets", target, subtarget, f"openwrt-imagebuilder-{target}-{subtarget}.Linux-x86_64.tar.xz")
+    #修改 build_helper/build.py 文件，在尝试移动 imagebuilder 压缩包之前，添加对 .zst 和 .xz 文件是否存在的检查，并在文件不存在时记录更详细的错误信息。
+    #在尝试移动 openwrt-imagebuilder 压缩包之前，脚本会检查 .zst 和 .xz 格式的文件是否存在。如果两个文件都不存在，它会记录详细的错误信息，包括检查过的路径和目标目录的内容，然后抛出 FileNotFoundError 。这能帮助您更好地诊断为什么找不到预期的文件。
+    path_zst = os.path.join(openwrt.path, "bin", "targets", target, subtarget, f"openwrt-imagebuilder-{target}-{subtarget}.Linux-x86_64.tar.zst")
+    path_xz = os.path.join(openwrt.path, "bin", "targets", target, subtarget, f"openwrt-imagebuilder-{target}-{subtarget}.Linux-x86_64.tar.xz")
+
+    bl_path = None
+    ext = None
+
+    if os.path.exists(path_zst):
+        bl_path = path_zst
+        ext = "zst"
+        logger.info(f"Found Image Builder: {bl_path}")
+    elif os.path.exists(path_xz):
+        bl_path = path_xz
+    ext = None
+        logger.info(f"Found Image Builder: {bl_path}")
+    else:
+        logger.error(f"Image Builder not found. Checked paths:")
+        logger.error(f"  - ZST: {path_zst}")
+        logger.error(f"  - XZ:  {path_xz}")
+        logger.error(f"Listing contents of {os.path.join(openwrt.path, 'bin', 'targets', target, subtarget)}:")
+        try:
+            for item in os.listdir(os.path.join(openwrt.path, 'bin', 'targets', target, subtarget)):
+                logger.error(f"    - {item}")
+        except FileNotFoundError:
+            logger.error(f"    Directory {os.path.join(openwrt.path, 'bin', 'targets', target, subtarget)} not found.")
+        msg = f"Neither ZST nor XZ Image Builder archive found for {target}/{subtarget}"
+        raise FileNotFoundError(msg)
+
+    if os.path.exists(path_zst):
+        bl_path = path_zst
+        ext = "zst"
+        logger.info(f"Found Image Builder: {bl_path}")
+    elif os.path.exists(path_xz):
+        bl_path = path_xz
         ext = "xz"
     shutil.move(bl_path, os.path.join(paths.uploads, f"openwrt-imagebuilder.tar.{ext}"))
     bl_path = os.path.join(paths.uploads, f"openwrt-imagebuilder.tar.{ext}")
