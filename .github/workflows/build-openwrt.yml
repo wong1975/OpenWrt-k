@@ -38,7 +38,7 @@ jobs:
       - name: 建立环境
         uses: ./.github/action/prepare
 
-     # - name: 创建 ax3600-stock 配置软链接
+     # - name: 创建 (${{ matrix.name }}) 配置软链接
      #   run: |
      #     cd config
      #     if [ ! -e qualcommax_ipq807x_xiaomi_ax3600-stock ]; then
@@ -50,7 +50,7 @@ jobs:
         working-directory: /opt/OpenWrt-K
         run: python3 -m build_helper --task prepare
 
-      - name: 上传生成源代码
+      - name: 上传生成(${{ matrix.name }})源代码
         uses: ./../../../../../opt/OpenWrt-K/.github/action/upload
 
   base-builds:
@@ -166,12 +166,6 @@ jobs:
         working-directory: /opt/OpenWrt-K
         run: python3 -m build_helper --task build_image_builder --config ${{ matrix.config }}
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: (${{ matrix.name }})
-          path: bin/targets/qualcommax/ipq807x
-
       #调试输出目录
       - name: Debug Output Directory
         run: ls -R /home/runner/work/OpenWrt-k/OpenWrt-k/workdir/openwrt/bin/targets/qualcommax/ipq807x/
@@ -180,6 +174,12 @@ jobs:
       - name: Move Image Builder
         run: |
           mv /path/to/generated/openwrt-imagebuilder-qualcommax-ipq807x.Linux-x86_64.tar.xz \/home/runner/work/OpenWrt-k/OpenWrt-k/workdir/openwrt/bin/targets/qualcommax/ipq807x/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: (${{ matrix.name }})
+          path: bin/targets/qualcommax/ipq807x
 
       - name: 上传(${{ matrix.name }})固件
         if: success() || failure()
