@@ -166,6 +166,15 @@ jobs:
         working-directory: /opt/OpenWrt-K
         run: python3 -m build_helper --task build_image_builder --config ${{ matrix.config }}
 
+      #调试输出目录
+      - name: Debug Output Directory
+        run: ls -R /home/runner/work/OpenWrt-k/OpenWrt-k/workdir/openwrt/bin/targets/qualcommax/ipq807x/
+
+      #移动 Image Builder
+      - name: Move Image Builder
+        run: |
+          mv /path/to/generated/openwrt-imagebuilder-qualcommax-ipq807x.Linux-x86_64.tar.xz \/home/runner/work/OpenWrt-k/OpenWrt-k/workdir/openwrt/bin/targets/qualcommax/ipq807x/
+
       - name: 上传(${{ matrix.name }})固件
         if: success() || failure()
         uses: ./../../../../../opt/OpenWrt-K/.github/action/upload
