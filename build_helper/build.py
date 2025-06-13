@@ -283,8 +283,8 @@ def build_image_builder(cfg: dict) -> None:
     #    bl_path = os.path.join(openwrt.path, "bin", "targets", target, subtarget, f"openwrt-imagebuilder-{target}-{subtarget}.Linux-x86_64.tar.xz")
     #修改 build_helper/build.py 文件，在尝试移动 imagebuilder 压缩包之前，添加对 .zst 和 .xz 文件是否存在的检查，并在文件不存在时记录更详细的错误信息。
     #在尝试移动 openwrt-imagebuilder 压缩包之前，脚本会检查 .zst 和 .xz 格式的文件是否存在。如果两个文件都不存在，它会记录详细的错误信息，包括检查过的路径和目标目录的内容，然后抛出 FileNotFoundError 。这能帮助您更好地诊断为什么找不到预期的文件。
-    path_zst = os.path.join(openwrt.path, "bin", "targets", target, subtarget, f"openwrt-imagebuilder-{target}-{subtarget}.Linux-x86_64.tar.zst")
-    path_xz = os.path.join(openwrt.path, "bin", "targets", target, subtarget, f"openwrt-imagebuilder-{target}-{subtarget}.Linux-x86_64.tar.xz")
+    path_zst = os.path.join(openwrt.path, "bin", "targets", target, subtarget, f"openwrt-imagebuilder-{target}-{subtarget}.xiaomi_ax3600-stock.tar.zst")
+    path_xz = os.path.join(openwrt.path, "bin", "targets", target, subtarget, f"openwrt-imagebuilder-{target}-{subtarget}.xiaomi_ax3600-stock.tar.xz")
 
     bl_path = None
     ext = None
