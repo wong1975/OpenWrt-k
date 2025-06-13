@@ -223,7 +223,8 @@ def build_image_builder(cfg: dict) -> None:
     openwrt.make("package/install")
 
     logger.info("制作Image Builder包...")
-    openwrt.make("target/install")
+    #openwrt.make("target/install")
+    openwrt.make("-j$(nproc) V=s")
 
     logger.info("制作包索引、镜像概述信息并计算校验和...")
     openwrt.make("package/index")
