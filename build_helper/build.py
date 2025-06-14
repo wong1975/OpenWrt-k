@@ -248,7 +248,7 @@ def build_image_builder(cfg: dict) -> None:
         raise RuntimeError(msg)
 
     bin_path = os.path.join(openwrt.path, "bin")
-    targets_path = os.path.join(bin_path, "targets", target, subtarget)
+    targets_path = os.path.join(bin_path, "targets")#, target, subtarget
     qualcomm_path = os.path.join(targets_path, "qualcommax")
     ipq807x_path = os.path.join(qualcomm_path, "ipq807x")
 
@@ -278,15 +278,15 @@ def build_image_builder(cfg: dict) -> None:
         logger.warning(f"ipq807x 目录不存在: {ipq807x_path}")
     
     #bl_path = os.path.join(openwrt.path, "bin", "targets", target, subtarget, f"openwrt-imagebuilder-{target}-{subtarget}.Linux-x86_64.tar.zst")
-    #bl_path = os.path.join(openwrt.path, "bin", "targets", target, subtarget, "immortalwrt-imagebuilder-qualcommax-ipq807x.Linux-x86_64.tar.zst")
-    #ext = "zst"
-    #if not os.path.exists(bl_path):
+    bl_path = os.path.join(openwrt.path, "bin", "targets", target, subtarget, "immortalwrt-imagebuilder-qualcommax-ipq807x.Linux-x86_64.tar.zst")
+    ext = "zst"
+    if not os.path.exists(bl_path):
     #    #bl_path = os.path.join(openwrt.path, "bin", "targets", target, subtarget, f"openwrt-imagebuilder-{target}-{subtarget}.Linux-x86_64.tar.xz")
-    #    bl_path = os.path.join(openwrt.path, "bin", "targets", target, subtarget, "immortalwrt-imagebuilder-qualcommax-ipq807x.Linux-x86_64.tar.xz")
-    #    ext = "xz"
+        bl_path = os.path.join(openwrt.path, "bin", "targets", target, subtarget, "immortalwrt-imagebuilder-qualcommax-ipq807x.Linux-x86_64.tar.xz")
+        ext = "xz"
     #shutil.move(bl_path, os.path.join(paths.uploads, f"openwrt-imagebuilder.tar.{ext}"))
     #bl_path = os.path.join(paths.uploads, f"openwrt-imagebuilder.tar.{ext}")
-    #uploader.add(f"Image_Builder-{cfg['name']}", bl_path, retention_days=1, compression_level=0)
+    uploader.add(f"Image_Builder-{cfg['name']}", bl_path, retention_days=1, compression_level=0)
 
     logger.info("删除旧缓存...")
     del_cache(get_cache_restore_key(openwrt, cfg))
@@ -307,9 +307,9 @@ def build_images(cfg: dict) -> None:
         raise RuntimeError(msg)
 
     bin_path = os.path.join(ib.path, "bin")
-    targets_path = os.path.join(bin_path, "targets", target, subtarget)
-    qualcomm_path = os.path.join(bin_path, "qualcommax")
-    ipq807x_path = os.path.join(bin_path, "ipq807x")
+    targets_path = os.path.join(bin_path, "targets")#, target, subtarget
+    qualcomm_path = os.path.join(targets_path, "target")
+    ipq807x_path = os.path.join(qualcomm_path, "subtarget")
 
     # 列出 bin 目录下的所有文件
     bin_files = os.listdir(bin_path)
