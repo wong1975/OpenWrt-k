@@ -172,22 +172,27 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ipq807x-images
-          path: |
-            bin/targets/qualcommax/ipq807x/immortalwrt-qualcommax-ipq807x-xiaomi_ax3600-stock-squashfs-sysupgrade.bin
-            bin/targets/qualcommax/ipq807x/immortalwrt-qualcommax-ipq807x-xiaomi_ax3600-stock-squashfs-factory.ubi
-
-
-      #移动 Image Builder
-      - name: Move Image Builder
-        run: |
-          mv /path/to/generated/openwrt-imagebuilder-qualcommax-ipq807x.Linux-x86_64.tar.xz /home/runner/work/OpenWrt-k/OpenWrt-k/workdir/openwrt/bin/targets/qualcommax/ipq807x/
-
+          name: (${{ matrix.name }})
+          path: bin/targets/qualcommax/ipq807x
+          
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: (${{ matrix.name }})
-          path: bin/targets/qualcommax/ipq807x
+          name: ipq807x-images
+          path: |
+            bin/targets/qualcommax/ipq807x/immortalwrt-qualcommax-ipq807x-xiaomi_ax3600-stock-squashfs-factory.ubi
+            bin/targets/qualcommax/ipq807x/immortalwrt-qualcommax-ipq807x-xiaomi_ax3600-stock-squashfs-sysupgrade.bin
+
+      - name: Move Image factory sysupgrade
+        run: |
+          mv /path/to/generated/immortalwrt-qualcommax-ipq807x-xiaomi_ax3600-stock-squashfs-factory.ubi /home/runner/work/OpenWrt-k/OpenWrt-k/workdir/openwrt/bin/targets/qualcommax/ipq807x/
+          mv /path/to/generated/immortalwrt-qualcommax-ipq807x-xiaomi_ax3600-stock-squashfs-sysupgrade.bin /home/runner/work/OpenWrt-k/OpenWrt-k/workdir/openwrt/bin/targets/qualcommax/ipq807x/
+      #移动 Image Builder
+      - name: Move Image Builder
+        run: |
+          mv /path/to/generated/immortalwrt-imagebuilder-qualcommax-ipq807x.Linux-x86_64.tar.xz /home/runner/work/OpenWrt-k/OpenWrt-k/workdir/openwrt/bin/targets/qualcommax/ipq807x/
+
+
 
       - name: 上传(${{ matrix.name }})固件
         if: success() || failure()
