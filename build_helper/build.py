@@ -254,12 +254,12 @@ def build_image_builder(cfg: dict) -> None:
 
     # 列出 bin 目录下的所有文件
     bin_files = os.listdir(bin_path)
-    logger.debug(f"bin 目录下的文件: {bin_files}")
+    logger.debug(f"bin 目录下的文件: {bin_files}")   #有['targets', 'packages']
 
     # 列出 targets 目录下的所有文件
     if os.path.exists(targets_path):
         target_files = os.listdir(targets_path)
-        logger.debug(f"targets 目录下的文件: {target_files}")
+        logger.debug(f"targets 目录下的文件: {target_files}")#有['packages', 'immortalwrt-qualcommax-ipq807x-xiaomi_ax3600-stock-initramfs-uImage.itb', 'immortalwrt-qualcommax-ipq807x-xiaomi_ax3600-stock-squashfs-factory.ubi', 'immortalwrt-qualcommax-ipq807x-xiaomi_ax3600-stock-squashfs-sysupgrade.bin', 'immortalwrt-qualcommax-ipq807x-xiaomi_ax3600-stock.manifest', 'immortalwrt-imagebuilder-qualcommax-ipq807x.Linux-x86_64.tar.zst', 'profiles.json', 'sha256sums']
     else:
         logger.warning(f"targets 目录不存在: {targets_path}")
 
@@ -278,48 +278,15 @@ def build_image_builder(cfg: dict) -> None:
         logger.warning(f"ipq807x 目录不存在: {ipq807x_path}")
     
     #bl_path = os.path.join(openwrt.path, "bin", "targets", target, subtarget, f"openwrt-imagebuilder-{target}-{subtarget}.Linux-x86_64.tar.zst")
-    #ext = "zst"
-    #if not os.path.exists(bl_path):
-    #    bl_path = os.path.join(openwrt.path, "bin", "targets", target, subtarget, f"openwrt-imagebuilder-{target}-{subtarget}.Linux-x86_64.tar.xz")
-    #修改 build_helper/build.py 文件，在尝试移动 imagebuilder 压缩包之前，添加对 .zst 和 .xz 文件是否存在的检查，并在文件不存在时记录更详细的错误信息。
-    #在尝试移动 openwrt-imagebuilder 压缩包之前，脚本会检查 .zst 和 .xz 格式的文件是否存在。如果两个文件都不存在，它会记录详细的错误信息，包括检查过的路径和目标目录的内容，然后抛出 FileNotFoundError 。这能帮助您更好地诊断为什么找不到预期的文件。
-    path_zst = os.path.join(openwrt.path, "bin", "targets", target, subtarget, f"openwrt-imagebuilder-{target}-{subtarget}.xiaomi_ax3600-stock.tar.zst")
-    path_xz = os.path.join(openwrt.path, "bin", "targets", target, subtarget, f"openwrt-imagebuilder-{target}-{subtarget}.xiaomi_ax3600-stock.tar.xz")
-
-    bl_path = None
-    ext = None
-
-    if os.path.exists(path_zst):
-        bl_path = path_zst
-        ext = "zst"
-        logger.info(f"Found Image Builder: {bl_path}")
-    elif os.path.exists(path_xz):
-        bl_path = path_xz
-        ext = None
-        logger.info(f"Found Image Builder: {bl_path}")
-    else:
-        logger.error(f"Image Builder not found. Checked paths:")
-        logger.error(f"  - ZST: {path_zst}")
-        logger.error(f"  - XZ:  {path_xz}")
-        logger.error(f"Listing contents of {os.path.join(openwrt.path, 'bin', 'targets', target, subtarget)}:")
-        try:
-            for item in os.listdir(os.path.join(openwrt.path, 'bin', 'targets', target, subtarget)):
-                logger.error(f"    - {item}")
-        except FileNotFoundError:
-            logger.error(f"    Directory {os.path.join(openwrt.path, 'bin', 'targets', target, subtarget)} not found.")
-        msg = f"Neither ZST nor XZ Image Builder archive found for {target}/{subtarget}"
-        raise FileNotFoundError(msg)
-
-    if os.path.exists(path_zst):
-        bl_path = path_zst
-        ext = "zst"
-        logger.info(f"Found Image Builder: {bl_path}")
-    elif os.path.exists(path_xz):
-        bl_path = path_xz
+    bl_path = os.path.join(openwrt.path, "bin", "targets", target, subtarget, "immortalwrt-imagebuilder-qualcommax-ipq807x.Linux-x86_64.tar.zst")
+    ext = "zst"
+    if not os.path.exists(bl_path):
+        #bl_path = os.path.join(openwrt.path, "bin", "targets", target, subtarget, f"openwrt-imagebuilder-{target}-{subtarget}.Linux-x86_64.tar.xz")
+        bl_path = os.path.join(openwrt.path, "bin", "targets", target, subtarget, "immortalwrt-imagebuilder-qualcommax-ipq807x.Linux-x86_64.tar.xz")
         ext = "xz"
     shutil.move(bl_path, os.path.join(paths.uploads, f"openwrt-imagebuilder.tar.{ext}"))
     bl_path = os.path.join(paths.uploads, f"openwrt-imagebuilder.tar.{ext}")
-    uploader.add(f"Image_Builder-{cfg["device_name"]}", bl_path, retention_days=1, compression_level=0)
+    uploader.add(f"Image_Builder-{cfg['name']}", bl_path, retention_days=1, compression_level=0)
 
     logger.info("删除旧缓存...")
     del_cache(get_cache_restore_key(openwrt, cfg))
