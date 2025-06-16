@@ -38,10 +38,10 @@ jobs:
       - name: 建立环境
         uses: ./.github/action/prepare
 
-      - name: Install dependencies
-        run: |
-          pip install --no-cache-dir --upgrade pip
-          pip install --no-cache-dir pygit2
+      #- name: Install dependencies
+      #  run: |
+      #    pip install --no-cache-dir --upgrade pip
+      #    pip install --no-cache-dir pygit2
 
      # - name: 创建 (${{ matrix.name }}) 配置软链接
      #   run: |
