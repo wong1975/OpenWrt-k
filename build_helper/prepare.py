@@ -128,7 +128,7 @@ def prepare(configs: dict[str, dict[str, Any]]) -> None:
     logger.info("开始克隆拓展软件源码...")
     to_clone: set[tuple[str, str]] = {("https://github.com/immortalwrt/packages", ""),
                                        ("https://github.com/chenmozhijin/turboacc", "package"),
-                                       ("https://github.com/QiuSimons/openwrt-mos/luci-app-mosdns", "master"),
+                                       ("https://github.com/QiuSimons/openwrt-mos", "master"),
                                        ("https://github.com/pymumu/openwrt-smartdns", "master"),
                                        ("https://github.com/pymumu/luci-app-smartdns", "master"),
                                        *[(pkg["REPOSITORIE"], pkg["BRANCH"]) for config in configs.values() for pkg in config["extpackages"].values()],
