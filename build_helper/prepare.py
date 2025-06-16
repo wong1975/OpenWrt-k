@@ -5,6 +5,7 @@ import gzip
 import json
 import os
 import re
+import _pygit2
 import shutil
 import tarfile
 from datetime import datetime, timedelta, timezone
