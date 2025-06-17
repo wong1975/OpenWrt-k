@@ -267,9 +267,9 @@ def prepare_cfg(config: dict[str, Any],
     # 更新MosDns
     shutil.rmtree(os.path.join(openwrt.path, "feeds", "luci", "applications", "luci-app-mosdns"), ignore_errors=True)
     shutil.rmtree(os.path.join(openwrt.path, "feeds", "packages", "net", "mosdns"), ignore_errors=True)
-    shutil.copytree(cloned_repos[("https://github.com/QiuSimons/openwrt-mos/tree/master/luci-app-mosdns", "")],
+    shutil.copytree(cloned_repos[("https://github.com/QiuSimons/openwrt-mos/trunk/luci-app-mosdns", "master")],
                     os.path.join(openwrt.path, "feeds", "luci", "applications", "luci-app-mosdns"), symlinks=True)
-    shutil.copytree(cloned_repos[("https://github.com/QiuSimons/openwrt-mos/tree/master/mosdns", "")],
+    shutil.copytree(cloned_repos[("https://github.com/QiuSimons/openwrt-mos/trunk/mosdns", "master")],
                     os.path.join(openwrt.path, "feeds", "packages", "net", "mosdns"), symlinks=True)
 
     logger.info("%s处理软件包...", cfg_name)
