@@ -194,7 +194,7 @@ def build_image_builder(cfg: dict) -> None:
     openwrt = OpenWrt(os.path.join(paths.workdir, "openwrt")) #代码实例化 OpenWrt，设置工作目录
 
     logger.info("修改配置(设置编译所有kmod/取消编译其他软件包/取消生成镜像/)...")
-    openwrt.enable_kmods(cfg["compile"]["kmod_compile_exclude_list"], only_kmods=True) #启用了所有内核模块（kmod），但排除了用户指定的模块列表。
+    openwrt.enable_kmods(cfg["compile"]["kmod_compile_exclude_list"], only_kmods=False) #启用了所有内核模块（kmod），但排除了用户指定的模块列表。True
     with open(os.path.join(openwrt.path, ".config")) as f:
         config = f.read()
     with open(os.path.join(openwrt.path, ".config"), "w") as f:
@@ -203,7 +203,7 @@ def build_image_builder(cfg: dict) -> None:
                 (match := re.match(r"CONFIG_TARGET_ROOTFS_(?P<name>[^_=]+)=y", line)) or
                 (match := re.match(r"CONFIG_TARGET_IMAGES_(?P<name>[^_=]+)=y", line))):
                 name = match.group("name")
-                if name in ("ISO", "VDI", "VMDK", "VHDX", "TARGZ", "CPIOGZ", "EXT4FS", "GZIP"): # "SQUASHFS",
+                if name in ("ISO", "VDI", "VMDK", "VHDX", "TARGZ", "CPIOGZ", "EXT4FS", "SQUASHFS", "GZIP"): #
                     logger.debug(f"不构建 {name} 格式镜像")
                     f.write(line.replace("=y", "=n") + "\n")
             else:
